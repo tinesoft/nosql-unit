@@ -1,0 +1,14 @@
+language: java
+
+services:
+  - docker
+
+before_install:
+  - docker --version
+  - docker-compose --version
+  - docker-compose up -d
+  - docker-compose run nosqlunit.wait
+  - docker-compose run nosqlunit.maven mvn -B -Pintegration-tests clean install
+
+
+
