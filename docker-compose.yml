@@ -1,6 +1,83 @@
 version: '2.2'
 services:
-
+  nosqlunit-couchdb.couchdb:
+    image: couchdb:1
+    ports:
+      - 5984:5984
+    networks:
+      nosqlunit-net:
+        aliases: 
+          - couchdb
+  nosqlunit-couchbase.couchbase:
+    image: couchbase:2.5.2
+    ports:
+      - 8091-8094:8091-8094
+    networks:
+      nosqlunit-net:
+        aliases: 
+          - couchbase
+  nosqlunit-dynamodb.dynamodb:
+    image: amazon/dynamodb-local:1.11.119 
+    ports:
+      - 8000:8000
+    networks:
+      nosqlunit-net:
+        aliases: 
+          - dynamodb
+  nosqlunit-redis.redis:
+    image: redis:2
+    ports:
+      - 6379:6379
+    networks:
+      nosqlunit-net:
+        aliases: 
+          - redis
+  nosqlunit-mongo.mongo:
+    image: mongo:3
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 27017:27017
+    networks:
+      nosqlunit-net:
+        aliases: 
+          - mongo
+  nosqlunit-elasticsearch.elasticsearch:
+    image: elasticsearch:1-alpine
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms128m -Xmx128m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 7200:9200
+      - 7300:9300
+    networks:
+      nosqlunit-net:
+        aliases: 
+          - elasticsearch
+  nosqlunit-elasticsearch2.elasticsearch:
+    image: elasticsearch:2-alpine
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 8200:9200
+      - 8300:9300
+    networks:
+      nosqlunit-net:
+        aliases: 
+          - elasticsearch2
   nosqlunit-elasticsearch6.elasticsearch:
     image: elasticsearch:6.7.1
     environment:
@@ -39,10 +116,16 @@ services:
     depends_on:
       - nosqlunit.maven
       - nosqlunit-elasticsearch6.elasticsearch
-
+      - nosqlunit-elasticsearch2.elasticsearch
+      - nosqlunit-elasticsearch.elasticsearch
+      - nosqlunit-mongo.mongo
+      - nosqlunit-redis.redis
+      - nosqlunit-dynamodb.dynamodb
+      - nosqlunit-couchbase.couchbase
+      - nosqlunit-couchdb.couchdb
 
     environment:
-      - TARGETS=elasticsearch6:9200
+      - TARGETS=elasticsearch6:9200, elasticsearch2:8200, elasticsearch:7200, mongo:27017, redis:6379, dynamodb:8000, couchbase:8091, couchdb:5984
     networks:
       nosqlunit-net:
         aliases: 
